@@ -526,6 +526,31 @@ function fireConfetti(x, y) {
   setTimeout(() => container.remove(), 900);
 }
 
+function playFanfare() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6 — a quick "ta-da"
+    const now = ctx.currentTime;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      const start = now + i * 0.09;
+      const dur = 0.22;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + dur + 0.05);
+    });
+    setTimeout(() => ctx.close(), 900);
+  } catch (e) {
+    // lyd er ikke støttet eller blokkert av nettleseren — konfettien er nok
+  }
+}
+
 async function lockOption(proposal, option, clickEvent) {
   let dateLabel = formatDateLong(option.date);
   if (!confirm(`Låse "${proposal.title}" til ${dateLabel}? Dette legger den til som avtalt dato og lukker forslaget.`)) return;
@@ -553,6 +578,7 @@ async function lockOption(proposal, option, clickEvent) {
   }
 
   if (clickEvent) fireConfetti(clickEvent.clientX, clickEvent.clientY);
+  playFanfare();
   await supabaseClient.from("date_proposals").update({ status: "closed" }).eq("id", proposal.id);
   loadMeetings();
   loadProposals();
