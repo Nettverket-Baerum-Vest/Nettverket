@@ -13,15 +13,15 @@ const BARNEHAGER = [
 // Faste kontaktpersoner per barnehage. Fylles ut automatisk i navnefeltet
 // når barnehagen velges (kan alltid overstyres, f.eks. ved vikar).
 const BARNEHAGE_DEFAULT_NAMES = {
-  "Kirkerudbakken": "",
-  "Kolsåstrollet": "",
-  "Ekrekroken": "",
-  "Sollia": "",
-  "Oddenskogen": "",
-  "Epleskogen": "",
-  "Gjettum": "",
-  "Berghoff": "",
-  "Grindaberget": "",
+  "Kirkerudbakken": "Benjamin",
+  "Kolsåstrollet": "Hilde",
+  "Ekrekroken": "Cathrine Po",
+  "Sollia": "Karin",
+  "Oddenskogen": "Vibeke",
+  "Epleskogen": "Ola",
+  "Gjettum": "Cathrine Pe",
+  "Berghoff": "Ivan",
+  "Grindaberget": "Jenny",
 };
 
 const UKEDAGER = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
