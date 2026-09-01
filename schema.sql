@@ -12,6 +12,10 @@ create table if not exists network_meetings (
   location text,
   note text,
   created_by text,
+  moteleder text,
+  referent text,
+  attending text[],
+  not_attending text[],
   created_at timestamptz not null default now()
 );
 
@@ -36,11 +40,12 @@ create table if not exists date_options (
   created_at timestamptz not null default now()
 );
 
--- Hvilke barnehager som kan den datoen
+-- Hvilke barnehager som kan (eller ikke kan) den datoen
 create table if not exists date_votes (
   id uuid primary key default gen_random_uuid(),
   option_id uuid not null references date_options(id) on delete cascade,
   barnehage text not null,
+  can_attend boolean not null default true,
   name text,
   created_at timestamptz not null default now(),
   unique (option_id, barnehage)

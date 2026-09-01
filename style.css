@@ -457,8 +457,29 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 .card-note:empty { display: none; }
 
-.card-badge-row { margin-top: 0.5rem; }
+.card-badge-row { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .card-badge-row:empty { display: none; }
+
+.card-attendance {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.card-attendance:empty { display: none; }
+.attendance-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+.attendance-label {
+  color: var(--ink-soft);
+  font-weight: 700;
+}
 
 /* ---------- Proposal cards ---------- */
 .proposal-card-head {
@@ -523,6 +544,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   font-weight: 400;
   padding: 0.15rem 0;
 }
+.vote-chip.is-no {
+  background: var(--line);
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.option-votes-no:empty { display: none; }
 .option-actions {
   display: flex;
   align-items: center;
@@ -545,6 +573,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   color: var(--paper-card);
 }
 .vote-btn.is-voted:active { transform: scale(0.96); }
+
+.vote-no {
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+.vote-no.is-voted {
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+  color: var(--paper-card);
+}
 .option-remove {
   background: none;
   border: none;

@@ -58,6 +58,10 @@
       <div class="form-row">
         <label>Notat <em>(valgfritt)</em><textarea id="meetingNote" rows="2" placeholder="Kort beskjed til de andre"></textarea></label>
       </div>
+      <div class="form-row two-col">
+        <label>Møteleder <em>(rundgang)</em><select id="meetingModerator"></select></label>
+        <label>Referent <em>(rundgang)</em><select id="meetingReferent"></select></label>
+      </div>
       <div class="form-actions">
         <button type="submit" class="primary-btn">Lagre dato</button>
         <button type="button" class="text-btn" data-cancel="addMeetingForm">Avbryt</button>
@@ -110,6 +114,8 @@
     <p class="card-meta"></p>
     <p class="card-note"></p>
     <div class="card-badge-row"></div>
+    <div class="card-attendance"></div>
+    <button type="button" class="text-btn add-to-calendar">+ Legg til i kalender</button>
   </article>
 </template>
 
@@ -143,9 +149,11 @@
     <div class="option-main">
       <p class="option-date"></p>
       <div class="option-votes"></div>
+      <div class="option-votes option-votes-no"></div>
     </div>
     <div class="option-actions">
-      <button type="button" class="vote-btn">Vi kan</button>
+      <button type="button" class="vote-btn vote-yes">Vi kan</button>
+      <button type="button" class="vote-btn vote-no">Vi kan ikke</button>
       <button type="button" class="lock-btn text-btn">Lås som avtalt</button>
       <button type="button" class="option-remove" title="Fjern dato">&times;</button>
     </div>

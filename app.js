@@ -42,12 +42,33 @@ function bhColorVar(name) {
   return `var(--bh-${slug(name)})`;
 }
 
-function bhBadge(name) {
+function bhBadge(name, label) {
   const span = document.createElement("span");
   span.className = "bh-badge";
   span.style.setProperty("--bh-color", bhColorVar(name));
-  span.textContent = name;
+  span.textContent = label ? `${label}: ${name}` : name;
   return span;
+}
+
+function nextBarnehage(current) {
+  const idx = BARNEHAGER.indexOf(current);
+  if (idx === -1) return BARNEHAGER[0];
+  return BARNEHAGER[(idx + 1) % BARNEHAGER.length];
+}
+
+function fillBarnehageSelect(select, includeEmpty) {
+  if (includeEmpty) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Ikke satt";
+    select.appendChild(opt);
+  }
+  BARNEHAGER.forEach((b) => {
+    const opt = document.createElement("option");
+    opt.value = b;
+    opt.textContent = b;
+    select.appendChild(opt);
+  });
 }
 
 function applyBhColor(element, name) {
@@ -61,6 +82,54 @@ function setYouColor(barnehage) {
 function formatDateLong(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
   return `${UKEDAGER[d.getDay()]} ${d.getDate()}. ${MANEDER[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function icsEscape(text) {
+  return String(text).replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
+}
+
+function downloadIcs(meeting) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const [y, m, d] = meeting.date.split("-").map(Number);
+  const start = `${y}${pad(m)}${pad(d)}`;
+  const endDate = new Date(y, m - 1, d + 1);
+  const end = `${endDate.getFullYear()}${pad(endDate.getMonth() + 1)}${pad(endDate.getDate())}`;
+
+  const descParts = [];
+  if (meeting.time) descParts.push(`Tidspunkt: ${meeting.time}`);
+  if (meeting.moteleder) descParts.push(`Møteleder: ${meeting.moteleder}`);
+  if (meeting.referent) descParts.push(`Referent: ${meeting.referent}`);
+  if (meeting.note) descParts.push(meeting.note);
+
+  const now = new Date();
+  const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Nettverkstavla//NO",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${meeting.id}@nettverkstavla`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${start}`,
+    `DTEND;VALUE=DATE:${end}`,
+    `SUMMARY:${icsEscape(meeting.title)}`,
+    meeting.location ? `LOCATION:${icsEscape(meeting.location)}` : null,
+    descParts.length ? `DESCRIPTION:${icsEscape(descParts.join("\n"))}` : null,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].filter(Boolean);
+
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${slug(meeting.title) || "motedato"}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function todayStr() {
@@ -84,12 +153,9 @@ function getIdentity() {
 
 function setupIdentity() {
   const select = document.getElementById("barnehageSelect");
-  BARNEHAGER.forEach((b) => {
-    const opt = document.createElement("option");
-    opt.value = b;
-    opt.textContent = b;
-    select.appendChild(opt);
-  });
+  fillBarnehageSelect(select, false);
+  fillBarnehageSelect(document.getElementById("meetingModerator"), true);
+  fillBarnehageSelect(document.getElementById("meetingReferent"), true);
 
   const tagsList = document.getElementById("barnehageTags");
   BARNEHAGER.forEach((b) => {
@@ -116,13 +182,22 @@ function setupIdentity() {
   });
 }
 
-function setupToggle(buttonId, formId) {
+function setupToggle(buttonId, formId, onOpen) {
   const btn = document.getElementById(buttonId);
   const form = document.getElementById(formId);
   btn.addEventListener("click", () => {
     form.hidden = !form.hidden;
     btn.textContent = form.hidden ? btn.dataset.openLabel : "Avbryt";
+    if (!form.hidden && onOpen) onOpen();
   });
+}
+
+function suggestRotation() {
+  const last = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
+  const suggestedModerator = last && last.referent ? last.referent : "";
+  const suggestedReferent = last && last.referent ? nextBarnehage(last.referent) : "";
+  document.getElementById("meetingModerator").value = suggestedModerator;
+  document.getElementById("meetingReferent").value = suggestedReferent;
 }
 
 document.addEventListener("click", (e) => {
@@ -138,6 +213,8 @@ document.addEventListener("click", (e) => {
 
 /* ---------------- Meetings ---------------- */
 
+let cachedMeetings = [];
+
 async function loadMeetings() {
   const { data, error } = await supabaseClient
     .from("network_meetings")
@@ -151,6 +228,9 @@ async function loadMeetings() {
     list.innerHTML = `<p class="empty-state">Klarte ikke å hente datoer. Prøv å laste siden på nytt.</p>`;
     return;
   }
+
+  cachedMeetings = data || [];
+
   if (!data || data.length === 0) {
     list.innerHTML = `<p class="empty-state">Ingen avtalte datoer ennå.</p>`;
     return;
@@ -174,8 +254,43 @@ async function loadMeetings() {
     node.querySelector(".card-meta").textContent = metaParts.join(" · ");
 
     node.querySelector(".card-note").textContent = meeting.note || "";
-    if (meeting.created_by) {
-      node.querySelector(".card-badge-row").appendChild(bhBadge(meeting.created_by));
+
+    const badgeRow = node.querySelector(".card-badge-row");
+    if (meeting.moteleder) badgeRow.appendChild(bhBadge(meeting.moteleder, "Møteleder"));
+    if (meeting.referent) badgeRow.appendChild(bhBadge(meeting.referent, "Referent"));
+    if (meeting.created_by) badgeRow.appendChild(bhBadge(meeting.created_by, "Lagt til av"));
+
+    const attendanceEl = node.querySelector(".card-attendance");
+    if (meeting.attending && meeting.attending.length) {
+      const line = document.createElement("div");
+      line.className = "attendance-line";
+      const label = document.createElement("span");
+      label.className = "attendance-label";
+      label.textContent = "Deltar:";
+      line.appendChild(label);
+      meeting.attending.forEach((b) => {
+        const chip = document.createElement("span");
+        chip.className = "vote-chip";
+        chip.style.setProperty("--bh-color", bhColorVar(b));
+        chip.textContent = b;
+        line.appendChild(chip);
+      });
+      attendanceEl.appendChild(line);
+    }
+    if (meeting.not_attending && meeting.not_attending.length) {
+      const line = document.createElement("div");
+      line.className = "attendance-line";
+      const label = document.createElement("span");
+      label.className = "attendance-label";
+      label.textContent = "Kan ikke:";
+      line.appendChild(label);
+      meeting.not_attending.forEach((b) => {
+        const chip = document.createElement("span");
+        chip.className = "vote-chip is-no";
+        chip.textContent = b;
+        line.appendChild(chip);
+      });
+      attendanceEl.appendChild(line);
     }
 
     node.querySelector(".card-remove").addEventListener("click", async () => {
@@ -183,6 +298,8 @@ async function loadMeetings() {
       await supabaseClient.from("network_meetings").delete().eq("id", meeting.id);
       loadMeetings();
     });
+
+    node.querySelector(".add-to-calendar").addEventListener("click", () => downloadIcs(meeting));
 
     list.appendChild(node);
   });
@@ -198,6 +315,8 @@ document.getElementById("addMeetingForm").addEventListener("submit", async (e) =
     location: document.getElementById("meetingLocation").value.trim() || null,
     note: document.getElementById("meetingNote").value.trim() || null,
     created_by: identity.barnehage,
+    moteleder: document.getElementById("meetingModerator").value || null,
+    referent: document.getElementById("meetingReferent").value || null,
   };
   const { error } = await supabaseClient.from("network_meetings").insert(payload);
   if (error) {
@@ -250,7 +369,7 @@ function renderProposals(proposals) {
     node.querySelector(".proposal-title").textContent = proposal.title;
     node.querySelector(".proposal-description").textContent = proposal.description || "";
     if (proposal.created_by) {
-      node.querySelector(".card-badge-row").appendChild(bhBadge(proposal.created_by));
+      node.querySelector(".card-badge-row").appendChild(bhBadge(proposal.created_by, "Foreslått av"));
     }
 
     node.querySelector(".card-remove").addEventListener("click", async () => {
@@ -272,20 +391,22 @@ function renderProposals(proposals) {
     options.forEach((option) => {
       const optionNode = optionTemplate.content.cloneNode(true);
       const votes = option.date_votes || [];
-      const hasVoted = votes.some((v) => v.barnehage === identity.barnehage);
+      const yesVotes = votes.filter((v) => v.can_attend);
+      const noVotes = votes.filter((v) => !v.can_attend);
+      const myVote = votes.find((v) => v.barnehage === identity.barnehage);
 
       let dateLabel = formatDateLong(option.date);
       if (option.time) dateLabel += ` · ${option.time}`;
       optionNode.querySelector(".option-date").textContent = dateLabel;
 
       const votesEl = optionNode.querySelector(".option-votes");
-      if (votes.length === 0) {
+      if (yesVotes.length === 0) {
         const span = document.createElement("span");
         span.className = "vote-chip is-empty";
         span.textContent = "Ingen har stemt ennå";
         votesEl.appendChild(span);
       } else {
-        votes.forEach((v) => {
+        yesVotes.forEach((v) => {
           const chip = document.createElement("span");
           chip.className = "vote-chip";
           chip.style.setProperty("--bh-color", bhColorVar(v.barnehage));
@@ -294,10 +415,24 @@ function renderProposals(proposals) {
         });
       }
 
-      const voteBtn = optionNode.querySelector(".vote-btn");
-      voteBtn.textContent = hasVoted ? "Vi kan ✓" : "Vi kan";
-      voteBtn.classList.toggle("is-voted", hasVoted);
-      voteBtn.addEventListener("click", () => toggleVote(option.id, identity, hasVoted));
+      const noVotesEl = optionNode.querySelector(".option-votes-no");
+      noVotes.forEach((v) => {
+        const chip = document.createElement("span");
+        chip.className = "vote-chip is-no";
+        chip.textContent = v.barnehage;
+        noVotesEl.appendChild(chip);
+      });
+
+      const yesBtn = optionNode.querySelector(".vote-yes");
+      const noBtn = optionNode.querySelector(".vote-no");
+      const votedYes = !!myVote && myVote.can_attend;
+      const votedNo = !!myVote && !myVote.can_attend;
+      yesBtn.textContent = votedYes ? "Vi kan ✓" : "Vi kan";
+      yesBtn.classList.toggle("is-voted", votedYes);
+      noBtn.textContent = votedNo ? "Vi kan ikke ✓" : "Vi kan ikke";
+      noBtn.classList.toggle("is-voted", votedNo);
+      yesBtn.addEventListener("click", () => setVote(option.id, identity, true, votedYes));
+      noBtn.addEventListener("click", () => setVote(option.id, identity, false, votedNo));
 
       optionNode.querySelector(".lock-btn").addEventListener("click", (e) => lockOption(proposal, option, e));
 
@@ -341,19 +476,28 @@ function renderProposals(proposals) {
   });
 }
 
-async function toggleVote(optionId, identity, hasVoted) {
-  if (hasVoted) {
-    await supabaseClient
+async function setVote(optionId, identity, attending, alreadySetToThis) {
+  let error;
+  if (alreadySetToThis) {
+    ({ error } = await supabaseClient
       .from("date_votes")
       .delete()
       .eq("option_id", optionId)
-      .eq("barnehage", identity.barnehage);
+      .eq("barnehage", identity.barnehage));
   } else {
-    await supabaseClient.from("date_votes").insert({
-      option_id: optionId,
-      barnehage: identity.barnehage,
-      name: identity.name || null,
-    });
+    ({ error } = await supabaseClient.from("date_votes").upsert(
+      {
+        option_id: optionId,
+        barnehage: identity.barnehage,
+        can_attend: attending,
+        name: identity.name || null,
+      },
+      { onConflict: "option_id,barnehage" }
+    ));
+  }
+  if (error) {
+    alert("Klarte ikke å registrere stemmen. Prøv igjen.");
+    return;
   }
   loadProposals();
 }
@@ -387,12 +531,21 @@ async function lockOption(proposal, option, clickEvent) {
   if (!confirm(`Låse "${proposal.title}" til ${dateLabel}? Dette legger den til som avtalt dato og lukker forslaget.`)) return;
 
   const identity = getIdentity();
+  const votes = option.date_votes || [];
+  const lastMeeting = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
+  const moteleder = lastMeeting && lastMeeting.referent ? lastMeeting.referent : null;
+  const referent = lastMeeting && lastMeeting.referent ? nextBarnehage(lastMeeting.referent) : null;
+
   const { error: insertError } = await supabaseClient.from("network_meetings").insert({
     title: proposal.title,
     date: option.date,
     time: option.time,
     note: proposal.description || null,
     created_by: identity.barnehage,
+    moteleder,
+    referent,
+    attending: votes.filter((v) => v.can_attend).map((v) => v.barnehage),
+    not_attending: votes.filter((v) => !v.can_attend).map((v) => v.barnehage),
   });
   if (insertError) {
     alert("Klarte ikke å låse datoen. Prøv igjen.");
@@ -440,7 +593,7 @@ function showConfigWarningIfNeeded() {
 function init() {
   document.getElementById("toggleAddMeeting").dataset.openLabel = "+ Legg til dato";
   document.getElementById("toggleAddProposal").dataset.openLabel = "+ Nytt forslag";
-  setupToggle("toggleAddMeeting", "addMeetingForm");
+  setupToggle("toggleAddMeeting", "addMeetingForm", suggestRotation);
   setupToggle("toggleAddProposal", "addProposalForm");
   setupIdentity();
 
