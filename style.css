@@ -18,6 +18,34 @@
   /* the header band is deliberately dark in both themes, so its text
      stays a fixed light tone rather than following the surface tokens */
   --signboard-ink: #fbfaf4;
+
+  /* one color per barnehage — fixed base values, used as-is in light
+     mode and lightened under the dark-mode blocks below so each stays
+     legible on whichever surface it lands on */
+  --bh-kirkerudbakken: #c1573d;
+  --bh-kolsastrollet: #3e7ca6;
+  --bh-ekrekroken: #9c5b9e;
+  --bh-sollia: #a69436;
+  --bh-oddenskogen: #3f8e7c;
+  --bh-epleskogen: #b4484f;
+  --bh-gjettum: #5c5fa0;
+  --bh-berghoff: #8a6a3e;
+  --bh-grindaberget: #a34568;
+
+  /* fixed (never flips) — for the signboard header, which stays dark
+     in both themes */
+  --bhfix-kirkerudbakken: #c1573d;
+  --bhfix-kolsastrollet: #3e7ca6;
+  --bhfix-ekrekroken: #9c5b9e;
+  --bhfix-sollia: #a69436;
+  --bhfix-oddenskogen: #3f8e7c;
+  --bhfix-epleskogen: #b4484f;
+  --bhfix-gjettum: #5c5fa0;
+  --bhfix-berghoff: #8a6a3e;
+  --bhfix-grindaberget: #a34568;
+
+  /* the currently selected barnehage's color, set by app.js */
+  --you: var(--moss);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,6 +61,16 @@
     --ochre-soft: #3a331f;
     --line: #3a4238;
     --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.6);
+
+    --bh-kirkerudbakken: #e07e5f;
+    --bh-kolsastrollet: #6fa3c9;
+    --bh-ekrekroken: #c285c4;
+    --bh-sollia: #cbb466;
+    --bh-oddenskogen: #63b39f;
+    --bh-epleskogen: #d3767c;
+    --bh-gjettum: #8586c4;
+    --bh-berghoff: #b08f5f;
+    --bh-grindaberget: #c56f8d;
   }
 }
 
@@ -48,6 +86,16 @@
   --ochre-soft: #3a331f;
   --line: #3a4238;
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.6);
+
+  --bh-kirkerudbakken: #e07e5f;
+  --bh-kolsastrollet: #6fa3c9;
+  --bh-ekrekroken: #c285c4;
+  --bh-sollia: #cbb466;
+  --bh-oddenskogen: #63b39f;
+  --bh-epleskogen: #d3767c;
+  --bh-gjettum: #8586c4;
+  --bh-berghoff: #b08f5f;
+  --bh-grindaberget: #c56f8d;
 }
 
 * { box-sizing: border-box; }
@@ -72,16 +120,26 @@ body {
 
 /* ---------- Header ---------- */
 .site-header {
+  position: relative;
   background: var(--moss-deep);
   color: var(--signboard-ink);
   padding: 2.75rem 1.5rem 2.25rem;
+  overflow: hidden;
 }
 :root:not([data-theme="light"]) .site-header,
 :root[data-theme="dark"] .site-header {
   background: #14201a;
 }
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(251, 250, 244, 0.07) 1.4px, transparent 1.4px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
 
-.header-inner { max-width: 62rem; margin: 0 auto; }
+.header-inner { position: relative; max-width: 62rem; margin: 0 auto; }
 
 .eyebrow {
   font-family: var(--font-body);
@@ -117,19 +175,23 @@ body {
   margin: 0;
 }
 .barnehage-tags li {
-  border: 1px solid rgba(251, 250, 244, 0.35);
+  --tag-color: color-mix(in srgb, var(--bh-color, #fbfaf4) 78%, white);
+  border: 1.5px solid var(--tag-color);
+  color: var(--tag-color);
   border-radius: 999px;
   padding: 0.3rem 0.85rem;
   font-size: 0.85rem;
+  font-weight: 700;
 }
 
 /* ---------- Identity bar ---------- */
 .identity-bar {
   background: var(--paper-card);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 3px solid var(--you);
   position: sticky;
   top: 0;
   z-index: 5;
+  transition: border-color 0.2s ease;
 }
 .identity-inner {
   max-width: 62rem;
@@ -304,6 +366,53 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   box-shadow: var(--shadow);
 }
 
+.meeting-card {
+  padding-top: 1.4rem;
+  transform: rotate(var(--tilt, 0deg));
+}
+.meeting-card::before {
+  content: "";
+  position: absolute;
+  top: -0.4rem;
+  left: 1.3rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--bh-color, var(--ochre));
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+.card-stack .meeting-card:nth-child(3n+1) { --tilt: -0.6deg; }
+.card-stack .meeting-card:nth-child(3n+2) { --tilt: 0.5deg; }
+.card-stack .meeting-card:nth-child(3n+3) { --tilt: -0.3deg; }
+@media (prefers-reduced-motion: no-preference) {
+  .meeting-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .meeting-card:hover {
+    transform: rotate(0deg) translateY(-2px);
+    box-shadow: 0 2px 0 rgba(38, 50, 41, 0.06), 0 14px 22px -12px rgba(38, 50, 41, 0.32);
+  }
+}
+
+.bh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bh-color) 16%, var(--paper-card));
+  color: var(--bh-color);
+  white-space: nowrap;
+}
+.bh-badge::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--bh-color);
+  flex: none;
+}
+
 .card-remove {
   position: absolute;
   top: 0.6rem;
@@ -347,6 +456,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   margin: 0;
 }
 .card-note:empty { display: none; }
+
+.card-badge-row { margin-top: 0.5rem; }
+.card-badge-row:empty { display: none; }
 
 /* ---------- Proposal cards ---------- */
 .proposal-card-head {
@@ -400,8 +512,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .vote-chip {
   font-size: 0.75rem;
   font-weight: 700;
-  background: var(--moss-tint);
-  color: var(--moss-deep);
+  background: color-mix(in srgb, var(--bh-color, var(--moss)) 20%, var(--paper-card));
+  color: var(--bh-color, var(--moss-deep));
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
 }
@@ -418,19 +530,21 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 .vote-btn {
   background: var(--paper);
-  border: 1px solid var(--moss);
-  color: var(--moss);
+  border: 1px solid var(--you);
+  color: var(--you);
   border-radius: 999px;
   padding: 0.35rem 0.8rem;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 .vote-btn.is-voted {
-  background: var(--moss);
+  background: var(--you);
   color: var(--paper-card);
 }
+.vote-btn.is-voted:active { transform: scale(0.96); }
 .option-remove {
   background: none;
   border: none;
@@ -460,6 +574,45 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   padding: 0 1.5rem 3rem;
   color: var(--ink-soft);
   font-size: 0.82rem;
+}
+
+/* ---------- Entrance ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card-stack > .card, .proposal-stack > .card {
+    animation: rise-in 0.35s ease backwards;
+  }
+  .card-stack > .card:nth-child(2), .proposal-stack > .card:nth-child(2) { animation-delay: 0.05s; }
+  .card-stack > .card:nth-child(3), .proposal-stack > .card:nth-child(3) { animation-delay: 0.1s; }
+  .card-stack > .card:nth-child(n+4), .proposal-stack > .card:nth-child(n+4) { animation-delay: 0.15s; }
+}
+
+/* ---------- Confetti (fired once when a date is locked in) ---------- */
+.confetti-burst {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+.confetti-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--dot-color);
+  animation: confetti-fly 0.7s ease-out forwards;
+}
+@keyframes confetti-fly {
+  to {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+    opacity: 0;
+  }
 }
 
 /* ---------- Config warning ---------- */

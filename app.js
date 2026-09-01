@@ -10,10 +10,53 @@ const BARNEHAGER = [
   "Grindaberget",
 ];
 
+// Faste kontaktpersoner per barnehage. Fylles ut automatisk i navnefeltet
+// når barnehagen velges (kan alltid overstyres, f.eks. ved vikar).
+const BARNEHAGE_DEFAULT_NAMES = {
+  "Kirkerudbakken": "",
+  "Kolsåstrollet": "",
+  "Ekrekroken": "",
+  "Sollia": "",
+  "Oddenskogen": "",
+  "Epleskogen": "",
+  "Gjettum": "",
+  "Berghoff": "",
+  "Grindaberget": "",
+};
+
 const UKEDAGER = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const MANEDER = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
 
 let supabaseClient = null;
+
+function slug(name) {
+  return name
+    .toLowerCase()
+    .replace(/å/g, "a")
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "o")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function bhColorVar(name) {
+  return `var(--bh-${slug(name)})`;
+}
+
+function bhBadge(name) {
+  const span = document.createElement("span");
+  span.className = "bh-badge";
+  span.style.setProperty("--bh-color", bhColorVar(name));
+  span.textContent = name;
+  return span;
+}
+
+function applyBhColor(element, name) {
+  element.style.setProperty("--bh-color", bhColorVar(name));
+}
+
+function setYouColor(barnehage) {
+  document.documentElement.style.setProperty("--you", bhColorVar(barnehage));
+}
 
 function formatDateLong(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
@@ -25,11 +68,18 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+function getStoredName(barnehage) {
+  return localStorage.getItem(`nettverkstavla_navn_${slug(barnehage)}`);
+}
+function setStoredName(barnehage, name) {
+  localStorage.setItem(`nettverkstavla_navn_${slug(barnehage)}`, name);
+}
+
 function getIdentity() {
-  return {
-    barnehage: localStorage.getItem("nettverkstavla_barnehage") || BARNEHAGER[0],
-    name: localStorage.getItem("nettverkstavla_navn") || "",
-  };
+  const barnehage = localStorage.getItem("nettverkstavla_barnehage") || BARNEHAGER[0];
+  const stored = getStoredName(barnehage);
+  const name = stored !== null ? stored : (BARNEHAGE_DEFAULT_NAMES[barnehage] || "");
+  return { barnehage, name };
 }
 
 function setupIdentity() {
@@ -45,19 +95,24 @@ function setupIdentity() {
   BARNEHAGER.forEach((b) => {
     const li = document.createElement("li");
     li.textContent = b;
+    li.style.setProperty("--bh-color", `var(--bhfix-${slug(b)})`);
     tagsList.appendChild(li);
   });
 
   const identity = getIdentity();
   select.value = identity.barnehage;
   document.getElementById("nameInput").value = identity.name;
+  setYouColor(identity.barnehage);
 
   select.addEventListener("change", () => {
     localStorage.setItem("nettverkstavla_barnehage", select.value);
+    const updated = getIdentity();
+    document.getElementById("nameInput").value = updated.name;
+    setYouColor(updated.barnehage);
     renderProposals(cachedProposals);
   });
   document.getElementById("nameInput").addEventListener("change", (e) => {
-    localStorage.setItem("nettverkstavla_navn", e.target.value.trim());
+    setStoredName(getIdentity().barnehage, e.target.value.trim());
   });
 }
 
@@ -108,6 +163,7 @@ async function loadMeetings() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".meeting-card");
     if (meeting.date < today) card.classList.add("is-past");
+    if (meeting.created_by) applyBhColor(card, meeting.created_by);
 
     node.querySelector(".card-date").textContent = formatDateLong(meeting.date);
     node.querySelector(".card-title").textContent = meeting.title;
@@ -118,6 +174,9 @@ async function loadMeetings() {
     node.querySelector(".card-meta").textContent = metaParts.join(" · ");
 
     node.querySelector(".card-note").textContent = meeting.note || "";
+    if (meeting.created_by) {
+      node.querySelector(".card-badge-row").appendChild(bhBadge(meeting.created_by));
+    }
 
     node.querySelector(".card-remove").addEventListener("click", async () => {
       if (!confirm(`Fjerne "${meeting.title}"?`)) return;
@@ -190,6 +249,9 @@ function renderProposals(proposals) {
     const node = proposalTemplate.content.cloneNode(true);
     node.querySelector(".proposal-title").textContent = proposal.title;
     node.querySelector(".proposal-description").textContent = proposal.description || "";
+    if (proposal.created_by) {
+      node.querySelector(".card-badge-row").appendChild(bhBadge(proposal.created_by));
+    }
 
     node.querySelector(".card-remove").addEventListener("click", async () => {
       if (!confirm(`Fjerne forslaget "${proposal.title}" og alle datoene i det?`)) return;
@@ -226,6 +288,7 @@ function renderProposals(proposals) {
         votes.forEach((v) => {
           const chip = document.createElement("span");
           chip.className = "vote-chip";
+          chip.style.setProperty("--bh-color", bhColorVar(v.barnehage));
           chip.textContent = v.barnehage;
           votesEl.appendChild(chip);
         });
@@ -236,7 +299,7 @@ function renderProposals(proposals) {
       voteBtn.classList.toggle("is-voted", hasVoted);
       voteBtn.addEventListener("click", () => toggleVote(option.id, identity, hasVoted));
 
-      optionNode.querySelector(".lock-btn").addEventListener("click", () => lockOption(proposal, option));
+      optionNode.querySelector(".lock-btn").addEventListener("click", (e) => lockOption(proposal, option, e));
 
       optionNode.querySelector(".option-remove").addEventListener("click", async () => {
         if (!confirm("Fjerne dette datoforslaget?")) return;
@@ -295,7 +358,31 @@ async function toggleVote(optionId, identity, hasVoted) {
   loadProposals();
 }
 
-async function lockOption(proposal, option) {
+function fireConfetti(x, y) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const slugs = BARNEHAGER.map(slug);
+  const container = document.createElement("div");
+  container.className = "confetti-burst";
+  container.style.left = `${x}px`;
+  container.style.top = `${y}px`;
+  const count = 18;
+  for (let i = 0; i < count; i++) {
+    const dot = document.createElement("span");
+    dot.className = "confetti-dot";
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+    const distance = 55 + Math.random() * 55;
+    dot.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    dot.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    dot.style.setProperty("--rot", `${Math.round(Math.random() * 360)}deg`);
+    dot.style.setProperty("--dot-color", `var(--bh-${slugs[i % slugs.length]})`);
+    dot.style.animationDelay = `${(Math.random() * 0.08).toFixed(2)}s`;
+    container.appendChild(dot);
+  }
+  document.body.appendChild(container);
+  setTimeout(() => container.remove(), 900);
+}
+
+async function lockOption(proposal, option, clickEvent) {
   let dateLabel = formatDateLong(option.date);
   if (!confirm(`Låse "${proposal.title}" til ${dateLabel}? Dette legger den til som avtalt dato og lukker forslaget.`)) return;
 
@@ -312,6 +399,7 @@ async function lockOption(proposal, option) {
     return;
   }
 
+  if (clickEvent) fireConfetti(clickEvent.clientX, clickEvent.clientY);
   await supabaseClient.from("date_proposals").update({ status: "closed" }).eq("id", proposal.id);
   loadMeetings();
   loadProposals();
