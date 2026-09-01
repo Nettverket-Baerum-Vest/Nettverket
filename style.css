@@ -1,0 +1,474 @@
+/* ---------- Design tokens ---------- */
+:root {
+  --paper: #eef1e8;
+  --paper-card: #fbfaf4;
+  --ink: #263229;
+  --ink-soft: #5c6b5e;
+  --moss: #4b6b4e;
+  --moss-deep: #33492f;
+  --moss-tint: #dce6da;
+  --ochre: #c98a2e;
+  --ochre-soft: #f0dcb8;
+  --line: #d8dcc9;
+  --shadow: 0 1px 0 rgba(38, 50, 41, 0.06), 0 6px 16px -10px rgba(38, 50, 41, 0.25);
+
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-body: "Karla", "Segoe UI", system-ui, sans-serif;
+
+  /* the header band is deliberately dark in both themes, so its text
+     stays a fixed light tone rather than following the surface tokens */
+  --signboard-ink: #fbfaf4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1b211c;
+    --paper-card: #232a22;
+    --ink: #edeee4;
+    --ink-soft: #a8b2a0;
+    --moss: #86ab80;
+    --moss-deep: #a8c6a2;
+    --moss-tint: #2b3a2b;
+    --ochre: #e3a94a;
+    --ochre-soft: #3a331f;
+    --line: #3a4238;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #1b211c;
+  --paper-card: #232a22;
+  --ink: #edeee4;
+  --ink-soft: #a8b2a0;
+  --moss: #86ab80;
+  --moss-deep: #a8c6a2;
+  --moss-tint: #2b3a2b;
+  --ochre: #e3a94a;
+  --ochre-soft: #3a331f;
+  --line: #3a4238;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.6);
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { color-scheme: light dark; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card, .primary-btn, .ghost-btn, .vote-btn { transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  background: var(--moss-deep);
+  color: var(--signboard-ink);
+  padding: 2.75rem 1.5rem 2.25rem;
+}
+:root:not([data-theme="light"]) .site-header,
+:root[data-theme="dark"] .site-header {
+  background: #14201a;
+}
+
+.header-inner { max-width: 62rem; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  margin: 0 0 0.5rem;
+}
+
+.site-header h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  margin: 0 0 0.6rem;
+  text-wrap: balance;
+}
+
+.lede {
+  max-width: 38rem;
+  opacity: 0.9;
+  margin: 0 0 1.4rem;
+  font-size: 1.05rem;
+}
+
+.barnehage-tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+}
+.barnehage-tags li {
+  border: 1px solid rgba(251, 250, 244, 0.35);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+/* ---------- Identity bar ---------- */
+.identity-bar {
+  background: var(--paper-card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.identity-inner {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: end;
+}
+.identity-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.identity-field em { font-weight: 400; font-style: normal; }
+.identity-field select,
+.identity-field input {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  min-width: 12rem;
+}
+
+/* ---------- Layout ---------- */
+.board-grid {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+@media (min-width: 860px) {
+  .board-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+
+.board-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.board-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ochre);
+  margin: 0 0 0.15rem;
+}
+.board-head h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* ---------- Buttons ---------- */
+.primary-btn {
+  background: var(--moss);
+  color: var(--paper-card);
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.primary-btn:hover { background: var(--moss-deep); }
+.primary-btn.small { padding: 0.45rem 0.85rem; font-size: 0.85rem; }
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid var(--moss);
+  color: var(--moss);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ghost-btn:hover { background: var(--moss-tint); }
+
+.text-btn {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0.4rem 0.2rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.text-btn:hover { color: var(--ink); }
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--ochre);
+  outline-offset: 2px;
+}
+
+/* ---------- Forms ---------- */
+.add-form {
+  background: var(--moss-tint);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.form-row { display: flex; flex-direction: column; }
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.form-row em { font-weight: 400; font-style: normal; }
+.form-row input, .form-row textarea {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-card);
+  resize: vertical;
+}
+.form-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+/* ---------- Cards ---------- */
+.card-stack, .proposal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.empty-state {
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 1rem 0;
+}
+
+.card {
+  position: relative;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.card-remove {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+}
+.card-remove:hover { color: var(--ink); background: var(--moss-tint); }
+
+.meeting-card.is-past { opacity: 0.55; }
+
+.card-date {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ochre);
+  margin: 0 0 0.25rem;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0 0 0.2rem;
+  padding-right: 1.5rem;
+}
+.card-meta {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  margin: 0 0 0.3rem;
+}
+.card-note {
+  font-size: 0.92rem;
+  margin: 0;
+}
+.card-note:empty { display: none; }
+
+/* ---------- Proposal cards ---------- */
+.proposal-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 0.8rem;
+}
+.proposal-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  margin: 0 0 0.2rem;
+}
+.proposal-description {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 0;
+}
+.proposal-description:empty { display: none; }
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.option-row {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  position: relative;
+}
+.option-date {
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+  text-transform: capitalize;
+}
+.option-votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.vote-chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--moss-tint);
+  color: var(--moss-deep);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+}
+.vote-chip.is-empty {
+  background: none;
+  color: var(--ink-soft);
+  font-weight: 400;
+  padding: 0.15rem 0;
+}
+.option-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.vote-btn {
+  background: var(--paper);
+  border: 1px solid var(--moss);
+  color: var(--moss);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.vote-btn.is-voted {
+  background: var(--moss);
+  color: var(--paper-card);
+}
+.option-remove {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: 6px;
+}
+.option-remove:hover { color: var(--ink); background: var(--moss-tint); }
+
+.add-option-toggle { align-self: flex-start; }
+.add-option-form {
+  margin-top: 0.6rem;
+  background: var(--moss-tint);
+  border-radius: 10px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+/* ---------- Config warning ---------- */
+.config-warning {
+  background: var(--ochre-soft);
+  color: var(--ink);
+  border-bottom: 1px solid var(--ochre);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+}

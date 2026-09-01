@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nettverkstavla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <p class="eyebrow">Barnehagenettverket</p>
+    <h1>Nettverkstavla</h1>
+    <p class="lede">Avtalte datoer og felles avstemning på ett sted &mdash; ingen innlogging, ingen mailtråder.</p>
+    <ul class="barnehage-tags" id="barnehageTags"></ul>
+  </div>
+</header>
+
+<div class="identity-bar">
+  <div class="identity-inner">
+    <label class="identity-field">
+      <span>Hvilken barnehage representerer du?</span>
+      <select id="barnehageSelect"></select>
+    </label>
+    <label class="identity-field">
+      <span>Navn <em>(valgfritt)</em></span>
+      <input type="text" id="nameInput" placeholder="F.eks. Kari" autocomplete="off" />
+    </label>
+  </div>
+</div>
+
+<main class="board-grid">
+
+  <section class="board" aria-labelledby="confirmedHeading">
+    <div class="board-head">
+      <div>
+        <p class="board-kicker">Fastsatt</p>
+        <h2 id="confirmedHeading">Avtalte datoer</h2>
+      </div>
+      <button type="button" class="ghost-btn" id="toggleAddMeeting">+ Legg til dato</button>
+    </div>
+
+    <form id="addMeetingForm" class="add-form" hidden>
+      <div class="form-row">
+        <label>Tittel<input type="text" id="meetingTitle" required placeholder="F.eks. Nettverkstreff" /></label>
+      </div>
+      <div class="form-row two-col">
+        <label>Dato<input type="date" id="meetingDate" required /></label>
+        <label>Tidspunkt <em>(valgfritt)</em><input type="text" id="meetingTime" placeholder="F.eks. 09.00&ndash;11.00" /></label>
+      </div>
+      <div class="form-row">
+        <label>Sted <em>(valgfritt)</em><input type="text" id="meetingLocation" placeholder="F.eks. Sollia barnehage" /></label>
+      </div>
+      <div class="form-row">
+        <label>Notat <em>(valgfritt)</em><textarea id="meetingNote" rows="2" placeholder="Kort beskjed til de andre"></textarea></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn">Lagre dato</button>
+        <button type="button" class="text-btn" data-cancel="addMeetingForm">Avbryt</button>
+      </div>
+    </form>
+
+    <div id="meetingsList" class="card-stack">
+      <p class="empty-state">Laster&hellip;</p>
+    </div>
+  </section>
+
+  <section class="board" aria-labelledby="proposalsHeading">
+    <div class="board-head">
+      <div>
+        <p class="board-kicker">Under avklaring</p>
+        <h2 id="proposalsHeading">Foreslå og stem</h2>
+      </div>
+      <button type="button" class="ghost-btn" id="toggleAddProposal">+ Nytt forslag</button>
+    </div>
+
+    <form id="addProposalForm" class="add-form" hidden>
+      <div class="form-row">
+        <label>Hva gjelder forslaget?<input type="text" id="proposalTitle" required placeholder="F.eks. Nettverkstreff høst 2026" /></label>
+      </div>
+      <div class="form-row">
+        <label>Beskrivelse <em>(valgfritt)</em><textarea id="proposalDescription" rows="2" placeholder="Kort om hva dette gjelder"></textarea></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn">Opprett forslag</button>
+        <button type="button" class="text-btn" data-cancel="addProposalForm">Avbryt</button>
+      </div>
+    </form>
+
+    <div id="proposalsList" class="proposal-stack">
+      <p class="empty-state">Laster&hellip;</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Delt tavle uten innlogging &mdash; alle i nettverket kan legge til, stemme og rette opp. Ikke legg inn sensitiv informasjon.</p>
+</footer>
+
+<template id="meetingCardTemplate">
+  <article class="card meeting-card">
+    <button type="button" class="card-remove" title="Fjern">&times;</button>
+    <p class="card-date"></p>
+    <h3 class="card-title"></h3>
+    <p class="card-meta"></p>
+    <p class="card-note"></p>
+  </article>
+</template>
+
+<template id="proposalCardTemplate">
+  <article class="card proposal-card">
+    <div class="proposal-card-head">
+      <div>
+        <h3 class="proposal-title"></h3>
+        <p class="proposal-description"></p>
+      </div>
+      <button type="button" class="card-remove" title="Fjern forslag">&times;</button>
+    </div>
+    <div class="option-list"></div>
+    <button type="button" class="text-btn add-option-toggle">+ Foreslå en dato til</button>
+    <form class="add-option-form" hidden>
+      <div class="form-row two-col">
+        <label>Dato<input type="date" required class="option-date" /></label>
+        <label>Tidspunkt <em>(valgfritt)</em><input type="text" class="option-time" placeholder="F.eks. 09.00" /></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn small">Legg til dato</button>
+        <button type="button" class="text-btn" data-cancel-option>Avbryt</button>
+      </div>
+    </form>
+  </article>
+</template>
+
+<template id="optionRowTemplate">
+  <div class="option-row">
+    <div class="option-main">
+      <p class="option-date"></p>
+      <div class="option-votes"></div>
+    </div>
+    <div class="option-actions">
+      <button type="button" class="vote-btn">Vi kan</button>
+      <button type="button" class="lock-btn text-btn">Lås som avtalt</button>
+      <button type="button" class="option-remove" title="Fjern dato">&times;</button>
+    </div>
+  </div>
+</template>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
