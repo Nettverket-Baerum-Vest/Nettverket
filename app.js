@@ -243,7 +243,8 @@ async function loadMeetings() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".meeting-card");
     if (meeting.date < today) card.classList.add("is-past");
-    if (meeting.created_by) applyBhColor(card, meeting.created_by);
+    const pinColor = meeting.moteleder || meeting.referent;
+    if (pinColor) applyBhColor(card, pinColor);
 
     node.querySelector(".card-date").textContent = formatDateLong(meeting.date);
     node.querySelector(".card-title").textContent = meeting.title;
@@ -258,7 +259,6 @@ async function loadMeetings() {
     const badgeRow = node.querySelector(".card-badge-row");
     if (meeting.moteleder) badgeRow.appendChild(bhBadge(meeting.moteleder, "Møteleder"));
     if (meeting.referent) badgeRow.appendChild(bhBadge(meeting.referent, "Referent"));
-    if (meeting.created_by) badgeRow.appendChild(bhBadge(meeting.created_by, "Lagt til av"));
 
     const attendanceEl = node.querySelector(".card-attendance");
     if (meeting.attending && meeting.attending.length) {
