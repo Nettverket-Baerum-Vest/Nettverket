@@ -127,8 +127,23 @@
         <p class="proposal-description"></p>
         <div class="card-badge-row"></div>
       </div>
-      <button type="button" class="card-remove" title="Fjern forslag">&times;</button>
+      <div class="card-head-actions">
+        <button type="button" class="text-btn edit-proposal-toggle">Rediger</button>
+        <button type="button" class="card-remove" title="Fjern forslag">&times;</button>
+      </div>
     </div>
+    <form class="edit-proposal-form" hidden>
+      <div class="form-row">
+        <label>Hva gjelder forslaget?<input type="text" required class="edit-proposal-title" /></label>
+      </div>
+      <div class="form-row">
+        <label>Beskrivelse <em>(valgfritt)</em><textarea rows="2" class="edit-proposal-description"></textarea></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn small">Lagre</button>
+        <button type="button" class="text-btn" data-cancel-edit-proposal>Avbryt</button>
+      </div>
+    </form>
     <div class="option-list"></div>
     <button type="button" class="text-btn add-option-toggle">+ Foreslå en dato til</button>
     <form class="add-option-form" hidden>

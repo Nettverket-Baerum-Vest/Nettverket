@@ -489,6 +489,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   align-items: start;
   margin-bottom: 0.8rem;
 }
+.card-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: none;
+}
+.card-head-actions .card-remove { position: static; }
 .proposal-title {
   font-family: var(--font-display);
   font-weight: 600;

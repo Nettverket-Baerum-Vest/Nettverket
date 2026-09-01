@@ -378,6 +378,34 @@ function renderProposals(proposals) {
       loadProposals();
     });
 
+    const editToggle = node.querySelector(".edit-proposal-toggle");
+    const editForm = node.querySelector(".edit-proposal-form");
+    editToggle.addEventListener("click", () => {
+      editForm.hidden = !editForm.hidden;
+      if (!editForm.hidden) {
+        editForm.querySelector(".edit-proposal-title").value = proposal.title;
+        editForm.querySelector(".edit-proposal-description").value = proposal.description || "";
+      }
+    });
+    editForm.querySelector("[data-cancel-edit-proposal]").addEventListener("click", () => {
+      editForm.hidden = true;
+    });
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const { error } = await supabaseClient
+        .from("date_proposals")
+        .update({
+          title: editForm.querySelector(".edit-proposal-title").value.trim(),
+          description: editForm.querySelector(".edit-proposal-description").value.trim() || null,
+        })
+        .eq("id", proposal.id);
+      if (error) {
+        alert("Klarte ikke å lagre endringen. Prøv igjen.");
+        return;
+      }
+      loadProposals();
+    });
+
     const optionList = node.querySelector(".option-list");
     const options = [...(proposal.date_options || [])].sort((a, b) => a.date.localeCompare(b.date));
 
