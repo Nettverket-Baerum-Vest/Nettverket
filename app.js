@@ -427,9 +427,9 @@ function renderProposals(proposals) {
       const noBtn = optionNode.querySelector(".vote-no");
       const votedYes = !!myVote && myVote.can_attend;
       const votedNo = !!myVote && !myVote.can_attend;
-      yesBtn.textContent = votedYes ? "Vi kan ✓" : "Vi kan";
+      yesBtn.textContent = votedYes ? "Jeg kan ✓" : "Jeg kan";
       yesBtn.classList.toggle("is-voted", votedYes);
-      noBtn.textContent = votedNo ? "Vi kan ikke ✓" : "Vi kan ikke";
+      noBtn.textContent = votedNo ? "Jeg kan ikke ✓" : "Jeg kan ikke";
       noBtn.classList.toggle("is-voted", votedNo);
       yesBtn.addEventListener("click", () => setVote(option.id, identity, true, votedYes));
       noBtn.addEventListener("click", () => setVote(option.id, identity, false, votedNo));
