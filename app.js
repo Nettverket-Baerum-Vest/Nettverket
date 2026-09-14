@@ -513,9 +513,14 @@ function renderProposals(proposals) {
     const node = proposalTemplate.content.cloneNode(true);
     node.querySelector(".proposal-title").textContent = proposal.title;
     node.querySelector(".proposal-description").textContent = proposal.description || "";
+    const proposalBadgeRow = node.querySelector(".card-badge-row");
     if (proposal.created_by) {
-      node.querySelector(".card-badge-row").appendChild(bhBadge(proposal.created_by, "Foreslått av"));
+      proposalBadgeRow.appendChild(bhBadge(proposal.created_by, "Foreslått av"));
     }
+    const lastMeetingForPreview = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
+    const rolesPreview = computeNextRoles(lastMeetingForPreview);
+    if (rolesPreview.moteleder) proposalBadgeRow.appendChild(bhBadge(rolesPreview.moteleder, "Møteleder blir"));
+    if (rolesPreview.referent) proposalBadgeRow.appendChild(bhBadge(rolesPreview.referent, "Referent blir"));
 
     node.querySelector(".card-remove").addEventListener("click", async () => {
       if (!confirm(`Fjerne forslaget "${proposal.title}" og alle datoene i det?`)) return;
@@ -816,7 +821,7 @@ function showConfigWarningIfNeeded() {
   return false;
 }
 
-function init() {
+async function init() {
   document.getElementById("toggleAddMeeting").dataset.openLabel = "+ Legg til dato";
   document.getElementById("toggleAddProposal").dataset.openLabel = "+ Nytt forslag";
   document.getElementById("toggleAddNotice").dataset.openLabel = "+ Ny beskjed";
@@ -829,7 +834,9 @@ function init() {
 
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   loadNotices();
-  loadMeetings();
+  // loadProposals reads cachedMeetings (for the møteleder/referent-preview
+  // badges), so meetings must finish loading first.
+  await loadMeetings();
   loadProposals();
 }
 
