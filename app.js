@@ -509,7 +509,18 @@ function renderProposals(proposals) {
   const proposalTemplate = document.getElementById("proposalCardTemplate");
   const optionTemplate = document.getElementById("optionRowTemplate");
 
-  proposals.forEach((proposal) => {
+  // Vis forslagene i den rekkefølgen de faktisk vil skje (tidligste dato
+  // først), og la møteleder/referent-forhåndsvisningen kjede seg fremover
+  // fra siste avtalte møte — slik at f.eks. oktober og november ikke viser
+  // nøyaktig samme to navn.
+  const earliestOptionDate = (proposal) => {
+    const dates = (proposal.date_options || []).map((o) => o.date);
+    return dates.length ? dates.sort()[0] : "9999-99-99";
+  };
+  const sortedProposals = [...proposals].sort((a, b) => earliestOptionDate(a).localeCompare(earliestOptionDate(b)));
+  let rollingLastMeeting = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
+
+  sortedProposals.forEach((proposal) => {
     const node = proposalTemplate.content.cloneNode(true);
     node.querySelector(".proposal-title").textContent = proposal.title;
     node.querySelector(".proposal-description").textContent = proposal.description || "";
@@ -517,10 +528,10 @@ function renderProposals(proposals) {
     if (proposal.created_by) {
       proposalBadgeRow.appendChild(bhBadge(proposal.created_by, "Foreslått av"));
     }
-    const lastMeetingForPreview = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
-    const rolesPreview = computeNextRoles(lastMeetingForPreview);
+    const rolesPreview = computeNextRoles(rollingLastMeeting);
     if (rolesPreview.moteleder) proposalBadgeRow.appendChild(bhBadge(rolesPreview.moteleder, "Møteleder blir"));
     if (rolesPreview.referent) proposalBadgeRow.appendChild(bhBadge(rolesPreview.referent, "Referent blir"));
+    rollingLastMeeting = rolesPreview.moteleder ? { moteleder: rolesPreview.moteleder, referent: rolesPreview.referent } : rollingLastMeeting;
 
     node.querySelector(".card-remove").addEventListener("click", async () => {
       if (!confirm(`Fjerne forslaget "${proposal.title}" og alle datoene i det?`)) return;

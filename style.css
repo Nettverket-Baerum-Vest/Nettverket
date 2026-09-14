@@ -9,6 +9,7 @@
   --moss-tint: #dce6da;
   --ochre: #c98a2e;
   --ochre-soft: #f0dcb8;
+  --rose-soft: #f2dde0;
   --line: #d8dcc9;
   --shadow: 0 1px 0 rgba(38, 50, 41, 0.06), 0 6px 16px -10px rgba(38, 50, 41, 0.25);
 
@@ -61,6 +62,7 @@
     --moss-tint: #2b3a2b;
     --ochre: #e3a94a;
     --ochre-soft: #3a331f;
+    --rose-soft: #3a2a2c;
     --line: #3a4238;
     --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.6);
 
@@ -87,6 +89,7 @@
   --moss-tint: #2b3a2b;
   --ochre: #e3a94a;
   --ochre-soft: #3a331f;
+  --rose-soft: #3a2a2c;
   --line: #3a4238;
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.6);
 
@@ -241,12 +244,37 @@ body {
 .notice-stack {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.8rem;
+  gap: 1rem 1.2rem;
+  padding-top: 0.3rem;
 }
 .notice-card {
   flex: 1 1 220px;
   max-width: 320px;
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem 1.2rem;
+  border: none;
+  background: var(--note-color);
+  box-shadow: 0 3px 6px rgba(38, 50, 41, 0.18), 0 1px 0 rgba(38, 50, 41, 0.08);
+  transform: rotate(var(--tilt, 0deg));
+}
+.notice-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: linear-gradient(135deg, transparent 50%, rgba(38, 50, 41, 0.12) 50%);
+  border-radius: 0 12px 0 0;
+}
+.notice-stack .notice-card:nth-child(3n+1) { --tilt: -1deg; --note-color: var(--ochre-soft); }
+.notice-stack .notice-card:nth-child(3n+2) { --tilt: 0.8deg; --note-color: var(--moss-tint); }
+.notice-stack .notice-card:nth-child(3n+3) { --tilt: -0.5deg; --note-color: var(--rose-soft); }
+@media (prefers-reduced-motion: no-preference) {
+  .notice-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .notice-card:hover {
+    transform: rotate(0deg) translateY(-2px);
+    box-shadow: 0 8px 16px -6px rgba(38, 50, 41, 0.3), 0 1px 0 rgba(38, 50, 41, 0.08);
+  }
 }
 .notice-message {
   font-size: 0.95rem;
