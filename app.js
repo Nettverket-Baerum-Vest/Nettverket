@@ -56,6 +56,18 @@ function nextBarnehage(current) {
   return BARNEHAGER[(idx + 1) % BARNEHAGER.length];
 }
 
+// Fast regel: referenten fra siste møte blir møteleder på neste, og en ny
+// referent kommer på tur. Den som nettopp var møteleder får en pause — hvis
+// den naturlige neste referenten er samme barnehage som satt som møteleder
+// forrige gang, går turen videre til den etter.
+function computeNextRoles(lastMeeting) {
+  if (!lastMeeting || !lastMeeting.referent) return { moteleder: null, referent: null };
+  const moteleder = lastMeeting.referent;
+  let referent = nextBarnehage(moteleder);
+  if (referent === lastMeeting.moteleder) referent = nextBarnehage(referent);
+  return { moteleder, referent };
+}
+
 function fillBarnehageSelect(select, includeEmpty) {
   if (includeEmpty) {
     const opt = document.createElement("option");
@@ -194,10 +206,9 @@ function setupToggle(buttonId, formId, onOpen) {
 
 function suggestRotation() {
   const last = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
-  const suggestedModerator = last && last.referent ? last.referent : "";
-  const suggestedReferent = last && last.referent ? nextBarnehage(last.referent) : "";
-  document.getElementById("meetingModerator").value = suggestedModerator;
-  document.getElementById("meetingReferent").value = suggestedReferent;
+  const { moteleder, referent } = computeNextRoles(last);
+  document.getElementById("meetingModerator").value = moteleder || "";
+  document.getElementById("meetingReferent").value = referent || "";
 }
 
 document.addEventListener("click", (e) => {
@@ -586,8 +597,7 @@ async function lockOption(proposal, option, clickEvent) {
   const identity = getIdentity();
   const votes = option.date_votes || [];
   const lastMeeting = cachedMeetings.length ? cachedMeetings[cachedMeetings.length - 1] : null;
-  const moteleder = lastMeeting && lastMeeting.referent ? lastMeeting.referent : null;
-  const referent = lastMeeting && lastMeeting.referent ? nextBarnehage(lastMeeting.referent) : null;
+  const { moteleder, referent } = computeNextRoles(lastMeeting);
 
   const { error: insertError } = await supabaseClient.from("network_meetings").insert({
     title: proposal.title,
