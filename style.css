@@ -31,6 +31,7 @@
   --bh-gjettum: #5c5fa0;
   --bh-berghoff: #8a6a3e;
   --bh-grindaberget: #a34568;
+  --bh-marihona: #6e8a3f;
 
   /* fixed (never flips) — for the signboard header, which stays dark
      in both themes */
@@ -43,6 +44,7 @@
   --bhfix-gjettum: #5c5fa0;
   --bhfix-berghoff: #8a6a3e;
   --bhfix-grindaberget: #a34568;
+  --bhfix-marihona: #6e8a3f;
 
   /* the currently selected barnehage's color, set by app.js */
   --you: var(--moss);
@@ -71,6 +73,7 @@
     --bh-gjettum: #8586c4;
     --bh-berghoff: #b08f5f;
     --bh-grindaberget: #c56f8d;
+    --bh-marihona: #9db568;
   }
 }
 
@@ -96,6 +99,7 @@
   --bh-gjettum: #8586c4;
   --bh-berghoff: #b08f5f;
   --bh-grindaberget: #c56f8d;
+  --bh-marihona: #9db568;
 }
 
 * { box-sizing: border-box; }

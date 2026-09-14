@@ -8,6 +8,7 @@ const BARNEHAGER = [
   "Gjettum",
   "Berghoff",
   "Grindaberget",
+  "Marihøna",
 ];
 
 // Faste kontaktpersoner per barnehage. Fylles ut automatisk i navnefeltet
@@ -22,6 +23,7 @@ const BARNEHAGE_DEFAULT_NAMES = {
   "Gjettum": "Cathrine Pe",
   "Berghoff": "Ivan",
   "Grindaberget": "Jenny",
+  "Marihøna": "",
 };
 
 const UKEDAGER = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
