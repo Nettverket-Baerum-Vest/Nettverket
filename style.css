@@ -228,6 +228,39 @@ body {
   min-width: 12rem;
 }
 
+/* ---------- Notice board ---------- */
+.notice-board {
+  background: var(--ochre-soft);
+  border-bottom: 1px solid var(--line);
+}
+.notice-board-inner {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+.notice-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+.notice-card {
+  flex: 1 1 220px;
+  max-width: 320px;
+  padding: 0.9rem 1rem;
+}
+.notice-message {
+  font-size: 0.95rem;
+  margin: 0 0 0.4rem;
+  padding-right: 1.2rem;
+  white-space: pre-wrap;
+}
+.notice-location {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0 0 0.4rem;
+}
+.notice-location:empty { display: none; }
+
 /* ---------- Layout ---------- */
 .board-grid {
   max-width: 62rem;
@@ -432,6 +465,17 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 .card-remove:hover { color: var(--ink); background: var(--moss-tint); }
 
+.card-corner-actions {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+.card-corner-actions .card-remove { position: static; }
+.card-corner-actions .text-btn { text-decoration: none; font-size: 0.78rem; }
+
 .meeting-card.is-past { opacity: 0.55; }
 
 .card-date {
@@ -448,7 +492,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   font-weight: 600;
   font-size: 1.2rem;
   margin: 0 0 0.2rem;
-  padding-right: 1.5rem;
+  padding-right: 4.5rem;
 }
 .card-meta {
   color: var(--ink-soft);
@@ -473,6 +517,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   gap: 0.35rem;
 }
 .card-attendance:empty { display: none; }
+
+.meeting-vote-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+}
 .attendance-line {
   display: flex;
   flex-wrap: wrap;
@@ -518,6 +568,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   flex-direction: column;
   gap: 0.6rem;
   margin-bottom: 0.6rem;
+}
+
+.edit-option-form {
+  margin-top: 0.5rem;
+  background: var(--moss-tint);
+  border-radius: 10px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .option-row {

@@ -51,11 +51,21 @@ create table if not exists date_votes (
   unique (option_id, barnehage)
 );
 
+-- Frie beskjeder til hverandre (påminnelser, frister, hvor ting befinner seg)
+create table if not exists notices (
+  id uuid primary key default gen_random_uuid(),
+  message text not null,
+  location text,
+  created_by text,
+  created_at timestamptz not null default now()
+);
+
 -- Slår på row level security
 alter table network_meetings enable row level security;
 alter table date_proposals enable row level security;
 alter table date_options enable row level security;
 alter table date_votes enable row level security;
+alter table notices enable row level security;
 
 -- Åpen tilgang for alle (ingen innlogging) - lesing og skriving
 -- Dette er bevisst enkelt: nettverket er en liten, tillitsbasert gruppe.
@@ -70,3 +80,6 @@ create policy "public full access" on date_options for all using (true) with che
 
 drop policy if exists "public full access" on date_votes;
 create policy "public full access" on date_votes for all using (true) with check (true);
+
+drop policy if exists "public full access" on notices;
+create policy "public full access" on notices for all using (true) with check (true);

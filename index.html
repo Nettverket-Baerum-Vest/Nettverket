@@ -33,6 +33,35 @@
   </div>
 </div>
 
+<section class="notice-board" aria-labelledby="noticesHeading">
+  <div class="notice-board-inner">
+    <div class="board-head">
+      <div>
+        <p class="board-kicker">Husk dette</p>
+        <h2 id="noticesHeading">Beskjeder til hverandre</h2>
+      </div>
+      <button type="button" class="ghost-btn" id="toggleAddNotice">+ Ny beskjed</button>
+    </div>
+
+    <form id="addNoticeForm" class="add-form" hidden>
+      <div class="form-row">
+        <label>Beskjed<textarea id="noticeMessage" rows="2" required placeholder="F.eks. Frist for pedagoger å gjennomføre nettskjema er 30.09"></textarea></label>
+      </div>
+      <div class="form-row">
+        <label>Hvor <em>(valgfritt)</em><input type="text" id="noticeLocation" placeholder="F.eks. Ligger hos Sollia" /></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn">Legg ut</button>
+        <button type="button" class="text-btn" data-cancel="addNoticeForm">Avbryt</button>
+      </div>
+    </form>
+
+    <div id="noticesList" class="notice-stack">
+      <p class="empty-state">Laster&hellip;</p>
+    </div>
+  </div>
+</section>
+
 <main class="board-grid">
 
   <section class="board" aria-labelledby="confirmedHeading">
@@ -106,16 +135,56 @@
   <p>Delt tavle uten innlogging &mdash; alle i nettverket kan legge til, stemme og rette opp. Ikke legg inn sensitiv informasjon.</p>
 </footer>
 
+<template id="noticeCardTemplate">
+  <article class="card notice-card">
+    <button type="button" class="card-remove" title="Fjern">&times;</button>
+    <p class="notice-message"></p>
+    <p class="notice-location"></p>
+    <div class="card-badge-row"></div>
+  </article>
+</template>
+
 <template id="meetingCardTemplate">
   <article class="card meeting-card">
-    <button type="button" class="card-remove" title="Fjern">&times;</button>
+    <div class="card-corner-actions">
+      <button type="button" class="text-btn meeting-edit-toggle">Rediger</button>
+      <button type="button" class="card-remove" title="Fjern">&times;</button>
+    </div>
     <p class="card-date"></p>
     <h3 class="card-title"></h3>
     <p class="card-meta"></p>
     <p class="card-note"></p>
     <div class="card-badge-row"></div>
     <div class="card-attendance"></div>
+    <div class="meeting-vote-actions">
+      <button type="button" class="vote-btn vote-yes">Jeg kan</button>
+      <button type="button" class="vote-btn vote-no">Jeg kan ikke</button>
+    </div>
     <button type="button" class="text-btn add-to-calendar">+ Legg til i kalender</button>
+
+    <form class="edit-meeting-form" hidden>
+      <div class="form-row">
+        <label>Tittel<input type="text" required class="edit-meeting-title" /></label>
+      </div>
+      <div class="form-row two-col">
+        <label>Dato<input type="date" required class="edit-meeting-date" /></label>
+        <label>Tidspunkt <em>(valgfritt)</em><input type="text" class="edit-meeting-time" /></label>
+      </div>
+      <div class="form-row">
+        <label>Sted <em>(valgfritt)</em><input type="text" class="edit-meeting-location" /></label>
+      </div>
+      <div class="form-row">
+        <label>Notat <em>(valgfritt)</em><textarea rows="2" class="edit-meeting-note"></textarea></label>
+      </div>
+      <div class="form-row two-col">
+        <label>Møteleder<select class="edit-meeting-moderator"></select></label>
+        <label>Referent<select class="edit-meeting-referent"></select></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn small">Lagre</button>
+        <button type="button" class="text-btn" data-cancel-edit-meeting>Avbryt</button>
+      </div>
+    </form>
   </article>
 </template>
 
@@ -160,18 +229,31 @@
 </template>
 
 <template id="optionRowTemplate">
-  <div class="option-row">
-    <div class="option-main">
-      <p class="option-date"></p>
-      <div class="option-votes"></div>
-      <div class="option-votes option-votes-no"></div>
+  <div class="option-row-wrap">
+    <div class="option-row">
+      <div class="option-main">
+        <p class="option-date"></p>
+        <div class="option-votes"></div>
+        <div class="option-votes option-votes-no"></div>
+      </div>
+      <div class="option-actions">
+        <button type="button" class="vote-btn vote-yes">Jeg kan</button>
+        <button type="button" class="vote-btn vote-no">Jeg kan ikke</button>
+        <button type="button" class="option-edit-toggle text-btn">Rediger</button>
+        <button type="button" class="lock-btn text-btn">Lås som avtalt</button>
+        <button type="button" class="option-remove" title="Fjern dato">&times;</button>
+      </div>
     </div>
-    <div class="option-actions">
-      <button type="button" class="vote-btn vote-yes">Jeg kan</button>
-      <button type="button" class="vote-btn vote-no">Jeg kan ikke</button>
-      <button type="button" class="lock-btn text-btn">Lås som avtalt</button>
-      <button type="button" class="option-remove" title="Fjern dato">&times;</button>
-    </div>
+    <form class="edit-option-form" hidden>
+      <div class="form-row two-col">
+        <label>Dato<input type="date" required class="edit-option-date" /></label>
+        <label>Tidspunkt <em>(valgfritt)</em><input type="text" class="edit-option-time" placeholder="F.eks. 09&ndash;12" /></label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn small">Lagre</button>
+        <button type="button" class="text-btn" data-cancel-edit-option>Avbryt</button>
+      </div>
+    </form>
   </div>
 </template>
 

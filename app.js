@@ -224,9 +224,89 @@ document.addEventListener("click", (e) => {
   }
 });
 
+/* ---------------- Notices ---------------- */
+
+async function loadNotices() {
+  const { data, error } = await supabaseClient
+    .from("notices")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const list = document.getElementById("noticesList");
+  list.innerHTML = "";
+
+  if (error) {
+    list.innerHTML = `<p class="empty-state">Klarte ikke å hente beskjeder. Prøv å laste siden på nytt.</p>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    list.innerHTML = `<p class="empty-state">Ingen beskjeder ennå.</p>`;
+    return;
+  }
+
+  const template = document.getElementById("noticeCardTemplate");
+  data.forEach((notice) => {
+    const node = template.content.cloneNode(true);
+    const card = node.querySelector(".notice-card");
+    if (notice.created_by) applyBhColor(card, notice.created_by);
+
+    node.querySelector(".notice-message").textContent = notice.message;
+    node.querySelector(".notice-location").textContent = notice.location ? `Hvor: ${notice.location}` : "";
+
+    if (notice.created_by) {
+      node.querySelector(".card-badge-row").appendChild(bhBadge(notice.created_by, "Fra"));
+    }
+
+    node.querySelector(".card-remove").addEventListener("click", async () => {
+      if (!confirm("Fjerne denne beskjeden?")) return;
+      await supabaseClient.from("notices").delete().eq("id", notice.id);
+      loadNotices();
+    });
+
+    list.appendChild(node);
+  });
+}
+
+document.getElementById("addNoticeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const identity = getIdentity();
+  const payload = {
+    message: document.getElementById("noticeMessage").value.trim(),
+    location: document.getElementById("noticeLocation").value.trim() || null,
+    created_by: identity.barnehage,
+  };
+  const { error } = await supabaseClient.from("notices").insert(payload);
+  if (error) {
+    alert("Klarte ikke å legge ut beskjeden. Prøv igjen.");
+    return;
+  }
+  e.target.reset();
+  e.target.hidden = true;
+  document.getElementById("toggleAddNotice").textContent = "+ Ny beskjed";
+  loadNotices();
+});
+
 /* ---------------- Meetings ---------------- */
 
 let cachedMeetings = [];
+
+async function setMeetingAttendance(meeting, barnehage, attending, alreadySetToThis) {
+  const newAttending = (meeting.attending || []).filter((b) => b !== barnehage);
+  const newNotAttending = (meeting.not_attending || []).filter((b) => b !== barnehage);
+  if (!alreadySetToThis) {
+    if (attending) newAttending.push(barnehage);
+    else newNotAttending.push(barnehage);
+  }
+  const { error } = await supabaseClient
+    .from("network_meetings")
+    .update({ attending: newAttending, not_attending: newNotAttending })
+    .eq("id", meeting.id);
+  if (error) {
+    alert("Klarte ikke å registrere svaret. Prøv igjen.");
+    return;
+  }
+  loadMeetings();
+}
 
 async function loadMeetings() {
   const { data, error } = await supabaseClient
@@ -251,6 +331,7 @@ async function loadMeetings() {
 
   const today = todayStr();
   const template = document.getElementById("meetingCardTemplate");
+  const identity = getIdentity();
 
   data.forEach((meeting) => {
     const node = template.content.cloneNode(true);
@@ -313,6 +394,57 @@ async function loadMeetings() {
     });
 
     node.querySelector(".add-to-calendar").addEventListener("click", () => downloadIcs(meeting));
+
+    const editMeetingToggle = node.querySelector(".meeting-edit-toggle");
+    const editMeetingForm = node.querySelector(".edit-meeting-form");
+    fillBarnehageSelect(editMeetingForm.querySelector(".edit-meeting-moderator"), true);
+    fillBarnehageSelect(editMeetingForm.querySelector(".edit-meeting-referent"), true);
+    editMeetingToggle.addEventListener("click", () => {
+      editMeetingForm.hidden = !editMeetingForm.hidden;
+      if (!editMeetingForm.hidden) {
+        editMeetingForm.querySelector(".edit-meeting-title").value = meeting.title;
+        editMeetingForm.querySelector(".edit-meeting-date").value = meeting.date;
+        editMeetingForm.querySelector(".edit-meeting-time").value = meeting.time || "";
+        editMeetingForm.querySelector(".edit-meeting-location").value = meeting.location || "";
+        editMeetingForm.querySelector(".edit-meeting-note").value = meeting.note || "";
+        editMeetingForm.querySelector(".edit-meeting-moderator").value = meeting.moteleder || "";
+        editMeetingForm.querySelector(".edit-meeting-referent").value = meeting.referent || "";
+      }
+    });
+    editMeetingForm.querySelector("[data-cancel-edit-meeting]").addEventListener("click", () => {
+      editMeetingForm.hidden = true;
+    });
+    editMeetingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const { error } = await supabaseClient
+        .from("network_meetings")
+        .update({
+          title: editMeetingForm.querySelector(".edit-meeting-title").value.trim(),
+          date: editMeetingForm.querySelector(".edit-meeting-date").value,
+          time: editMeetingForm.querySelector(".edit-meeting-time").value.trim() || null,
+          location: editMeetingForm.querySelector(".edit-meeting-location").value.trim() || null,
+          note: editMeetingForm.querySelector(".edit-meeting-note").value.trim() || null,
+          moteleder: editMeetingForm.querySelector(".edit-meeting-moderator").value || null,
+          referent: editMeetingForm.querySelector(".edit-meeting-referent").value || null,
+        })
+        .eq("id", meeting.id);
+      if (error) {
+        alert("Klarte ikke å lagre endringen. Prøv igjen.");
+        return;
+      }
+      loadMeetings();
+    });
+
+    const isAttending = (meeting.attending || []).includes(identity.barnehage);
+    const isNotAttending = (meeting.not_attending || []).includes(identity.barnehage);
+    const yesBtn = node.querySelector(".meeting-vote-actions .vote-yes");
+    const noBtn = node.querySelector(".meeting-vote-actions .vote-no");
+    yesBtn.textContent = isAttending ? "Jeg kan ✓" : "Jeg kan";
+    yesBtn.classList.toggle("is-voted", isAttending);
+    noBtn.textContent = isNotAttending ? "Jeg kan ikke ✓" : "Jeg kan ikke";
+    noBtn.classList.toggle("is-voted", isNotAttending);
+    yesBtn.addEventListener("click", () => setMeetingAttendance(meeting, identity.barnehage, true, isAttending));
+    noBtn.addEventListener("click", () => setMeetingAttendance(meeting, identity.barnehage, false, isNotAttending));
 
     list.appendChild(node);
   });
@@ -480,6 +612,34 @@ function renderProposals(proposals) {
       optionNode.querySelector(".option-remove").addEventListener("click", async () => {
         if (!confirm("Fjerne dette datoforslaget?")) return;
         await supabaseClient.from("date_options").delete().eq("id", option.id);
+        loadProposals();
+      });
+
+      const editOptionToggle = optionNode.querySelector(".option-edit-toggle");
+      const editOptionForm = optionNode.querySelector(".edit-option-form");
+      editOptionToggle.addEventListener("click", () => {
+        editOptionForm.hidden = !editOptionForm.hidden;
+        if (!editOptionForm.hidden) {
+          editOptionForm.querySelector(".edit-option-date").value = option.date;
+          editOptionForm.querySelector(".edit-option-time").value = option.time || "";
+        }
+      });
+      editOptionForm.querySelector("[data-cancel-edit-option]").addEventListener("click", () => {
+        editOptionForm.hidden = true;
+      });
+      editOptionForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const { error } = await supabaseClient
+          .from("date_options")
+          .update({
+            date: editOptionForm.querySelector(".edit-option-date").value,
+            time: editOptionForm.querySelector(".edit-option-time").value.trim() || null,
+          })
+          .eq("id", option.id);
+        if (error) {
+          alert("Klarte ikke å lagre endringen. Prøv igjen.");
+          return;
+        }
         loadProposals();
       });
 
@@ -659,13 +819,16 @@ function showConfigWarningIfNeeded() {
 function init() {
   document.getElementById("toggleAddMeeting").dataset.openLabel = "+ Legg til dato";
   document.getElementById("toggleAddProposal").dataset.openLabel = "+ Nytt forslag";
+  document.getElementById("toggleAddNotice").dataset.openLabel = "+ Ny beskjed";
   setupToggle("toggleAddMeeting", "addMeetingForm", suggestRotation);
   setupToggle("toggleAddProposal", "addProposalForm");
+  setupToggle("toggleAddNotice", "addNoticeForm");
   setupIdentity();
 
   if (showConfigWarningIfNeeded()) return;
 
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  loadNotices();
   loadMeetings();
   loadProposals();
 }
