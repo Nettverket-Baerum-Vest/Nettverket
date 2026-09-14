@@ -23,7 +23,7 @@ const BARNEHAGE_DEFAULT_NAMES = {
   "Gjettum": "Cathrine Pe",
   "Berghoff": "Ivan",
   "Grindaberget": "Jenny",
-  "Marihøna": "",
+  "Marihøna": "Louise",
 };
 
 const UKEDAGER = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
