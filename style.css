@@ -247,35 +247,55 @@ body {
   gap: 1rem 1.2rem;
   padding-top: 0.3rem;
 }
-.notice-card {
-  flex: 1 1 220px;
-  max-width: 320px;
-  padding: 1rem 1.1rem 1.2rem;
-  border: none;
+/* A literal sticky note — used for both the notice board and each
+   proposed date, so they read as scraps stuck onto the board rather
+   than as ordinary UI rows. */
+.postit {
+  position: relative;
+  border: none !important;
   background: var(--note-color);
-  box-shadow: 0 3px 6px rgba(38, 50, 41, 0.18), 0 1px 0 rgba(38, 50, 41, 0.08);
+  box-shadow:
+    0 1px 1px rgba(38, 50, 41, 0.18),
+    0 7px 10px -3px rgba(38, 50, 41, 0.3),
+    0 16px 22px -14px rgba(38, 50, 41, 0.4);
   transform: rotate(var(--tilt, 0deg));
 }
-.notice-card::after {
+.postit::after {
   content: "";
   position: absolute;
   top: 0;
   right: 0;
-  width: 0.9rem;
-  height: 0.9rem;
-  background: linear-gradient(135deg, transparent 50%, rgba(38, 50, 41, 0.12) 50%);
-  border-radius: 0 12px 0 0;
+  width: 1.3rem;
+  height: 1.3rem;
+  background: linear-gradient(
+    135deg,
+    transparent 47%,
+    rgba(38, 50, 41, 0.22) 48% 51%,
+    rgba(255, 255, 255, 0.4) 52%,
+    transparent 63%
+  );
+  border-radius: 0 10px 0 0;
+  pointer-events: none;
 }
-.notice-stack .notice-card:nth-child(3n+1) { --tilt: -1deg; --note-color: var(--ochre-soft); }
-.notice-stack .notice-card:nth-child(3n+2) { --tilt: 0.8deg; --note-color: var(--moss-tint); }
-.notice-stack .notice-card:nth-child(3n+3) { --tilt: -0.5deg; --note-color: var(--rose-soft); }
 @media (prefers-reduced-motion: no-preference) {
-  .notice-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-  .notice-card:hover {
-    transform: rotate(0deg) translateY(-2px);
-    box-shadow: 0 8px 16px -6px rgba(38, 50, 41, 0.3), 0 1px 0 rgba(38, 50, 41, 0.08);
+  .postit { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .postit:hover {
+    transform: rotate(0deg) translateY(-3px) scale(1.015);
+    box-shadow:
+      0 1px 1px rgba(38, 50, 41, 0.18),
+      0 12px 18px -6px rgba(38, 50, 41, 0.34),
+      0 22px 30px -18px rgba(38, 50, 41, 0.45);
   }
 }
+
+.notice-card {
+  flex: 1 1 220px;
+  max-width: 320px;
+  padding: 1rem 1.1rem 1.2rem;
+}
+.notice-stack .postit:nth-child(3n+1) { --tilt: -2.2deg; --note-color: var(--ochre-soft); }
+.notice-stack .postit:nth-child(3n+2) { --tilt: 1.8deg; --note-color: var(--moss-tint); }
+.notice-stack .postit:nth-child(3n+3) { --tilt: -1.4deg; --note-color: var(--rose-soft); }
 .notice-message {
   font-size: 0.95rem;
   margin: 0 0 0.4rem;
@@ -597,6 +617,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   gap: 0.6rem;
   margin-bottom: 0.6rem;
 }
+.option-list > .option-row-wrap:nth-child(3n+1) { --tilt: -1.6deg; --note-color: var(--ochre-soft); }
+.option-list > .option-row-wrap:nth-child(3n+2) { --tilt: 1.3deg; --note-color: var(--moss-tint); }
+.option-list > .option-row-wrap:nth-child(3n+3) { --tilt: -0.9deg; --note-color: var(--rose-soft); }
 
 .edit-option-form {
   margin-top: 0.5rem;
@@ -609,9 +632,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 .option-row {
-  border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 0.7rem 0.8rem;
+  padding: 0.8rem 1rem 0.9rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
