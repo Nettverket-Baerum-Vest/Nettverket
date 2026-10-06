@@ -1,0 +1,16 @@
+name: Hold Supabase våken
+
+on:
+  schedule:
+    - cron: "17 6 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Spør databasen om én rad
+        run: |
+          curl --fail --silent --show-error --max-time 30 \
+            "https://mughiohvvtfdqxtroutu.supabase.co/rest/v1/network_meetings?select=id&limit=1" \
+            -H "apikey: sb_publishable_z4k6Y5YdaIvo-gWQJjfUSg_1tAd1v0w"
