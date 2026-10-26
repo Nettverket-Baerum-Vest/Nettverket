@@ -610,6 +610,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   margin: 0;
 }
 .proposal-description:empty { display: none; }
+.proposal-location {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0.15rem 0 0;
+}
+.proposal-location:empty { display: none; }
 
 .option-list {
   display: flex;

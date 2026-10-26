@@ -24,6 +24,7 @@ create table if not exists date_proposals (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
+  location text,
   status text not null default 'open', -- 'open' eller 'closed'
   created_by text,
   created_at timestamptz not null default now()

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
 
@@ -118,6 +118,9 @@
       <div class="form-row">
         <label>Beskrivelse <em>(valgfritt)</em><textarea id="proposalDescription" rows="2" placeholder="Kort om hva dette gjelder"></textarea></label>
       </div>
+      <div class="form-row">
+        <label>Sted <em>(valgfritt)</em><input type="text" id="proposalLocation" placeholder="F.eks. Sollia barnehage" /></label>
+      </div>
       <div class="form-actions">
         <button type="submit" class="primary-btn">Opprett forslag</button>
         <button type="button" class="text-btn" data-cancel="addProposalForm">Avbryt</button>
@@ -194,6 +197,7 @@
       <div>
         <h3 class="proposal-title"></h3>
         <p class="proposal-description"></p>
+        <p class="proposal-location"></p>
         <div class="card-badge-row"></div>
       </div>
       <div class="card-head-actions">
@@ -207,6 +211,9 @@
       </div>
       <div class="form-row">
         <label>Beskrivelse <em>(valgfritt)</em><textarea rows="2" class="edit-proposal-description"></textarea></label>
+      </div>
+      <div class="form-row">
+        <label>Sted <em>(valgfritt)</em><input type="text" class="edit-proposal-location" /></label>
       </div>
       <div class="form-actions">
         <button type="submit" class="primary-btn small">Lagre</button>
@@ -259,6 +266,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

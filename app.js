@@ -345,7 +345,7 @@ async function loadMeetings() {
 
     const metaParts = [];
     if (meeting.time) metaParts.push(meeting.time);
-    if (meeting.location) metaParts.push(meeting.location);
+    if (meeting.location) metaParts.push(`Sted: ${meeting.location}`);
     node.querySelector(".card-meta").textContent = metaParts.join(" · ");
 
     node.querySelector(".card-note").textContent = meeting.note || "";
@@ -524,6 +524,7 @@ function renderProposals(proposals) {
     const node = proposalTemplate.content.cloneNode(true);
     node.querySelector(".proposal-title").textContent = proposal.title;
     node.querySelector(".proposal-description").textContent = proposal.description || "";
+    node.querySelector(".proposal-location").textContent = proposal.location ? `Sted: ${proposal.location}` : "";
     const proposalBadgeRow = node.querySelector(".card-badge-row");
     if (proposal.created_by) {
       proposalBadgeRow.appendChild(bhBadge(proposal.created_by, "Foreslått av"));
@@ -546,6 +547,7 @@ function renderProposals(proposals) {
       if (!editForm.hidden) {
         editForm.querySelector(".edit-proposal-title").value = proposal.title;
         editForm.querySelector(".edit-proposal-description").value = proposal.description || "";
+        editForm.querySelector(".edit-proposal-location").value = proposal.location || "";
       }
     });
     editForm.querySelector("[data-cancel-edit-proposal]").addEventListener("click", () => {
@@ -553,12 +555,15 @@ function renderProposals(proposals) {
     });
     editForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const updates = {
+        title: editForm.querySelector(".edit-proposal-title").value.trim(),
+        description: editForm.querySelector(".edit-proposal-description").value.trim() || null,
+      };
+      const newLocation = editForm.querySelector(".edit-proposal-location").value.trim() || null;
+      if (newLocation !== (proposal.location || null)) updates.location = newLocation;
       const { error } = await supabaseClient
         .from("date_proposals")
-        .update({
-          title: editForm.querySelector(".edit-proposal-title").value.trim(),
-          description: editForm.querySelector(".edit-proposal-description").value.trim() || null,
-        })
+        .update(updates)
         .eq("id", proposal.id);
       if (error) {
         alert("Klarte ikke å lagre endringen. Prøv igjen.");
@@ -781,6 +786,7 @@ async function lockOption(proposal, option, clickEvent) {
     title: proposal.title,
     date: option.date,
     time: option.time,
+    location: proposal.location || null,
     note: proposal.description || null,
     created_by: identity.barnehage,
     moteleder,
@@ -808,6 +814,8 @@ document.getElementById("addProposalForm").addEventListener("submit", async (e) 
     description: document.getElementById("proposalDescription").value.trim() || null,
     created_by: identity.barnehage,
   };
+  const proposalLocation = document.getElementById("proposalLocation").value.trim();
+  if (proposalLocation) payload.location = proposalLocation;
   const { error } = await supabaseClient.from("date_proposals").insert(payload);
   if (error) {
     alert("Klarte ikke å opprette forslaget. Prøv igjen.");
