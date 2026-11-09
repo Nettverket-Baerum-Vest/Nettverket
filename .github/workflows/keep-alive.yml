@@ -2,15 +2,34 @@ name: Hold Supabase våken
 
 on:
   schedule:
-    - cron: "17 6 * * 1,4"
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    env:
+      BASE: https://mughiohvvtfdqxtroutu.supabase.co/rest/v1
+      KEY: sb_publishable_z4k6Y5YdaIvo-gWQJjfUSg_1tAd1v0w
     steps:
-      - name: Spør databasen om én rad
+      - name: Les én rad (feiler hvis databasen er nede)
         run: |
           curl --fail --silent --show-error --max-time 30 \
-            "https://mughiohvvtfdqxtroutu.supabase.co/rest/v1/network_meetings?select=id&limit=1" \
-            -H "apikey: sb_publishable_z4k6Y5YdaIvo-gWQJjfUSg_1tAd1v0w"
+            "$BASE/network_meetings?select=id&limit=1" \
+            -H "apikey: $KEY"
+
+      - name: Skriv et hjerteslag
+        run: |
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          code=$(curl --silent --show-error --max-time 30 -o /tmp/beat.out -w "%{http_code}" \
+            -X POST "$BASE/heartbeat?on_conflict=id" \
+            -H "apikey: $KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: resolution=merge-duplicates,return=minimal" \
+            -d "{\"id\":1,\"beat\":\"$now\"}")
+          echo "heartbeat http=$code"
+          if [ "$code" = "404" ]; then
+            echo "::warning::Tabellen heartbeat finnes ikke ennå. Kjør migration-5.sql i Supabase."
+            exit 0
+          fi
+          case "$code" in 2*) ;; *) cat /tmp/beat.out; exit 1 ;; esac
